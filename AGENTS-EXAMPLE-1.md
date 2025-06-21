@@ -1,3 +1,11 @@
+# AGENTS Example 1
+
+This example shows a minimal `AGENTS.md` configuration.
+
+- Run `python -m pytest` after changes.
+- Format code with `black` before committing.
+- Keep commit messages under 50 characters.
+
 # Example AGENTS.md
 
 This example demonstrates a simple set of instructions that could be placed in a
@@ -14,3 +22,4 @@ project directory.
 ## PR Message Guidelines
 - Summarize key code changes.
 - Include a short section on test results.
+
