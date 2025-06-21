@@ -1,4 +1,4 @@
-# AGENTS Example 3
+# AGENTS Example 3 🚀
 
 This configuration focuses on message templates and Node-based tooling.
 
