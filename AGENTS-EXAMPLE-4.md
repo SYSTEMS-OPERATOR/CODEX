@@ -1,4 +1,4 @@
-# AGENTS Example 4
+# AGENTS Example 4 🧪
 
 This example demonstrates environment setup and conditional behavior.
 
