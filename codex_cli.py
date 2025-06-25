@@ -19,116 +19,72 @@ try:
 except ImportError:  # pragma: no cover - dependency might be missing
     openai = None
 
-CONFIG_DIR = Path.home() / ".codex"
-CONFIG_PATH = CONFIG_DIR / "config.json"
-INSTRUCTIONS_PATH = CONFIG_DIR / "instructions.md"
 
-DEFAULT_MODEL = "gpt-4"
-DEFAULT_INSTRUCTIONS = """# Codex instructions
-Add any persistent instructions for the assistant here.
-"""
-
-PROJECT_DOC_FILENAMES = ["AGENTS.md", "codex.md", ".codex.md", "CODEX.md"]
-
-
-def discover_project_doc(start_dir: Path) -> Optional[Path]:
-    """Return path to project documentation if found."""
-    dir_path = start_dir.resolve()
-    while True:
-        for name in PROJECT_DOC_FILENAMES:
-            candidate = dir_path / name
-            if candidate.exists():
-                return candidate
-        if (dir_path / ".git").exists():
-            break
-        if dir_path.parent == dir_path:
-            break
-        dir_path = dir_path.parent
-    return None
-
-
-def load_project_doc(cwd: Path) -> str:
-    path = discover_project_doc(cwd)
-    if not path:
-        return ""
-    try:
-        return path.read_text("utf-8")
-    except Exception:
-        return ""
+CONFIG_DIR = Path.home() / '.codex'
+CONFIG_FILE = CONFIG_DIR / 'config.json'
+INSTRUCTIONS_FILE = CONFIG_DIR / 'instructions.md'
+DEFAULT_MODEL = 'codex-mini-latest'
 
 
 def load_config() -> dict:
-    if not CONFIG_PATH.exists():
-        return {"model": DEFAULT_MODEL}
-    try:
-        return json.loads(CONFIG_PATH.read_text("utf-8"))
-    except Exception:
-        return {"model": DEFAULT_MODEL}
+    """Load the CLI configuration from ~/.codex/config.json."""
+    if CONFIG_FILE.exists():
+        try:
+            return json.loads(CONFIG_FILE.read_text())
+        except Exception:
+            return {}
+    return {}
 
 
-def save_defaults() -> None:
+def get_api_key(provider: str = 'openai') -> str:
+    """Retrieve the API key for a provider from the environment."""
+    env_key = f'{provider.upper()}_API_KEY'
+    return os.getenv(env_key, '')
+
+
+def open_instructions_file() -> None:
+    """Open the instructions file in the user's preferred editor."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    if not CONFIG_PATH.exists():
-        CONFIG_PATH.write_text(json.dumps({"model": DEFAULT_MODEL}, indent=2))
-    if not INSTRUCTIONS_PATH.exists():
-        INSTRUCTIONS_PATH.write_text(DEFAULT_INSTRUCTIONS)
+    if not INSTRUCTIONS_FILE.exists():
+        INSTRUCTIONS_FILE.write_text('# Add your custom instructions here\n')
+    editor = os.getenv('EDITOR', 'vi')
+    subprocess.run([editor, str(INSTRUCTIONS_FILE)])
 
 
-def call_openai(model: str, messages: list[dict]) -> str:
-    if openai is None:
-        raise RuntimeError("openai package is not installed")
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY environment variable not set")
-    openai.api_key = api_key
-    resp = openai.chat.completions.create(model=model, messages=messages)
-    return resp.choices[0].message.content.strip()
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description='Simple Codex CLI prototype')
+    parser.add_argument('prompt', nargs='?', help='prompt to send to the model')
+    parser.add_argument('-m', '--model', help='model to use')
+    parser.add_argument('-p', '--provider', default='openai', help='completion provider')
+    parser.add_argument('-c', '--config', action='store_true', help='edit instructions file and exit')
 
-
-def run_prompt(prompt: str, cwd: Path) -> None:
-    cfg = load_config()
-    save_defaults()
-    instructions = INSTRUCTIONS_PATH.read_text("utf-8")
-    project_doc = load_project_doc(cwd)
-    system_message = "\n\n".join(
-        [part for part in [instructions, project_doc] if part.strip()]
-    )
-    if system_message:
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt},
-        ]
-    else:
-        messages = [{"role": "user", "content": prompt}]
-    try:
-        output = call_openai(cfg.get("model", DEFAULT_MODEL), messages)
-    except Exception as exc:  # pragma: no cover - network errors
-        sys.stderr.write(f"Error contacting OpenAI API: {exc}\n")
-        sys.exit(1)
-    print(output)
-
-
-def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Minimal Codex CLI")
-    parser.add_argument("prompt", nargs="?", help="Prompt for the assistant")
-    parser.add_argument(
-        "--init",
-        action="store_true",
-        help="Initialise configuration files and exit",
-    )
     args = parser.parse_args(argv)
 
-    if args.init:
-        save_defaults()
-        print(f"Configuration written to {CONFIG_PATH}")
+    if args.config:
+        open_instructions_file()
         return 0
 
-    if not args.prompt:
-        parser.error("prompt argument required unless --init is used")
+    config = load_config()
+    model = args.model or config.get('model', DEFAULT_MODEL)
+    provider = args.provider or config.get('provider', 'openai')
 
-    run_prompt(args.prompt, Path.cwd())
+    api_key = get_api_key(provider)
+    if not api_key:
+        print(f'Missing API key for provider {provider}. Set {provider.upper()}_API_KEY.')
+        return 1
+
+    prompt = args.prompt
+    if not prompt:
+        print('No prompt provided.')
+        return 1
+
+    print('--- Codex CLI Prototype ---')
+    print(f'Provider: {provider}')
+    print(f'Model: {model}')
+    print(f'Prompt: {prompt}')
+    print('This is a placeholder implementation.')
     return 0
 
 
-if __name__ == "__main__":  # pragma: no cover - CLI entry point
-    raise SystemExit(main(sys.argv[1:]))
+if __name__ == '__main__':
+    raise SystemExit(main())
