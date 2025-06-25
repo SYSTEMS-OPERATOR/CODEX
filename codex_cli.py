@@ -1,8 +1,24 @@
+#!/usr/bin/env python3
+"""Simplified Codex CLI inspired by the CODEX-CLI project.
+
+This tool demonstrates how to load user instructions and optional project
+documentation before sending a prompt to the OpenAI API. It is intentionally
+minimal and serves as a starting point for our own tooling.
+"""
+from __future__ import annotations
+
 import argparse
 import json
 import os
-import subprocess
+import sys
 from pathlib import Path
+from typing import Optional
+
+try:
+    import openai  # type: ignore
+except ImportError:  # pragma: no cover - dependency might be missing
+    openai = None
+
 
 CONFIG_DIR = Path.home() / '.codex'
 CONFIG_FILE = CONFIG_DIR / 'config.json'
