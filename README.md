@@ -1,10 +1,16 @@
 # CODEX
 
-Welcome to CODEX, an empty repository that now serves as a new home.
+This repository hosts a collection of small experiments and tooling.
 
-This repo can be a playground for experiments, tests, or any kind of
-project you might want to build. Feel free to expand it as needed.
+## codex CLI
 
-Check out `AGENTS-GUIDE.md` and the `AGENTS-EXAMPLE-*` files for tips on
-customizing the Codex agent. :sparkles:
+We provide a simple `codex` command that can send a prompt to the OpenAI API.
+Install dependencies with `npm install` and run the script like so:
 
+```bash
+node bin/codex.js "Hello"
+```
+
+Set the `OPENAI_API_KEY` environment variable before use.
+
+Check out `AGENTS-GUIDE.md` and the `AGENTS-EXAMPLE-*` files for tips on customizing the Codex agent. :sparkles:
