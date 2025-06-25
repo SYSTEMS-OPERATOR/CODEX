@@ -49,6 +49,7 @@ The repository now includes a simple prototype command line interface in
 prints the chosen provider, model and prompt. Use `-c` to edit the
 instructions file used by Codex.
 
+
 The CLI will automatically load any `AGENTS.md` (or `codex.md`) file found in the
 current project directory or its Git root and include it as additional context
 for the model.
@@ -61,3 +62,13 @@ for the model.
 - `AGENTS-EXAMPLE-*` – Example agent configurations.
 
 Feel free to build on top of this codebase and adapt it to your needs.
+
+## Tools
+
+A minimal Python implementation of the Codex CLI lives in `codex_cli/`. It is inspired by the original [CODEX-CLI project](https://github.com/SYSTEMS-OPERATOR/CODEX-CLI) but greatly simplified.
+
+```bash
+pip install openai python-dotenv
+python -m codex_cli --help
+```
+
